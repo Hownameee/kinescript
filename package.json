@@ -1,0 +1,10 @@
+{
+  "name": "assemble-3d-video",
+  "private": true,
+  "type": "module",
+  "description": "Video 3D giải thích cơ khí: thư viện Three.js + HyperFrames. Cần Node >= 22 (nvm use 24).",
+  "scripts": {
+    "video:check": "node --import ./tools/lib/register-three.mjs tools/build-video.mjs --check",
+    "video:build": "node --import ./tools/lib/register-three.mjs tools/build-video.mjs"
+  }
+}

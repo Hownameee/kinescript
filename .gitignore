@@ -1,0 +1,14 @@
+# Sinh tự động bởi tools/build-video.mjs (dựng lại bằng: npm run video:build -- <project>)
+*/spec.json
+*/index.html
+*/audio/
+
+# Video đã render
+*/renders/
+
+# Trạng thái / cache của HyperFrames
+.hyperframes/
+
+# Hệ thống
+node_modules/
+.DS_Store

@@ -1,0 +1,54 @@
+{
+  "$schema": "../../mech/schema/cvt-script.schema.json",
+  "title": "Vì sao vặn ga, máy gào mà xe lên từ từ?",
+  "voice": { "provider": "say", "voice": "Linh", "rate": 205 },
+  "music": { "enabled": true, "bpm": 96, "volume": 0.9 },
+  "timing": { "lead": 0.2, "pad": 0.5, "snapToBeat": true, "maxDuration": 35 },
+  "beats": [
+    {
+      "id": "hook",
+      "narration": "Vặn hết ga, máy gào lên, mà xe tay ga vẫn lên từ từ. Có phải xe bị yếu?",
+      "shot": "hero", "orbit": 0.2,
+      "caption": "Máy gào, xe lên từ từ: xe yếu?",
+      "hud": true,
+      "drive": { "rpm": { "to": 6000, "ramp": [0.3, 0.8] } }
+    },
+    {
+      "id": "giu-vong-tua",
+      "narration": "Không đâu. Hộp số vô cấp cố tình giữ máy ở vòng tua khỏe nhất, khoảng sáu nghìn vòng.",
+      "shot": "overview", "orbit": 0.2,
+      "caption": "CVT cố tình giữ máy ở vòng tua khỏe nhất",
+      "sub": "Khoảng 6.000 vòng/phút, nơi động cơ sinh công lớn nhất",
+      "arrows": ["frontSpin", "rearSpin"],
+      "hud": true,
+      "drive": { "rpm": 6100 }
+    },
+    {
+      "id": "bi-vang",
+      "narration": "Trong lúc đó, bi văng từ từ văng ra, đẩy dây lên vòng lớn ở puli trước.",
+      "shot": "frontCut",
+      "caption": "Bi văng từ từ đẩy dây lên vòng lớn",
+      "cut": ["frontPulley"],
+      "arrows": ["centrifugal", "sheavePush"],
+      "highlight": ["rollers"],
+      "hud": true,
+      "drive": { "rpm": 6250, "shift": 0.7 }
+    },
+    {
+      "id": "ti-so-giam",
+      "narration": "Tỉ số truyền giảm dần, nên xe nhanh dần dù tiếng máy không đổi.",
+      "shot": "overview", "orbit": 0.25,
+      "caption": "Tiếng máy không đổi, tỉ số giảm, xe nhanh dần",
+      "hud": true,
+      "drive": { "rpm": 6400, "shift": 1 }
+    },
+    {
+      "id": "ket",
+      "narration": "Máy gào đều là dấu hiệu hộp số đang làm đúng việc của nó.",
+      "shot": "hero", "orbit": 0.2,
+      "caption": "Máy gào đều = CVT đang làm đúng việc",
+      "hud": true,
+      "drive": { "rpm": { "to": 2000, "ramp": [0.1, 0.9] }, "shift": { "to": 0, "ramp": [0.1, 0.5] } }
+    }
+  ]
+}

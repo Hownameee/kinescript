@@ -1,0 +1,104 @@
+{
+  "$schema": "../mech/schema/cvt-script.schema.json",
+  "title": "Xe tay ga sang số thế nào?",
+  "voice": { "provider": "say", "voice": "Linh", "rate": 205 },
+  "music": { "enabled": true, "bpm": 96, "volume": 0.9 },
+  "timing": { "lead": 0.2, "pad": 0.5, "snapToBeat": true, "maxDuration": 60 },
+  "beats": [
+    {
+      "id": "hook",
+      "narration": "Xe tay ga không có cần số. Vậy nó sang số bằng cách nào?",
+      "shot": "hero", "orbit": 0.25,
+      "caption": "Xe tay ga không có cần số",
+      "sub": "Vậy nó \"sang số\" bằng cách nào?"
+    },
+    {
+      "id": "front-pulley",
+      "narration": "Bí mật nằm ở hai puli côn và một sợi dây đai. Puli trước gắn với trục khuỷu động cơ.",
+      "shot": "overview",
+      "caption": "Bí mật: 2 puli côn và 1 dây đai",
+      "highlight": ["frontFixed", "frontMovable"],
+      "tags": [{ "text": "Puli trước · nối trục khuỷu", "anchor": "frontPulley", "dx": -60, "dy": -40 }]
+    },
+    {
+      "id": "rear-pulley",
+      "narration": "Puli sau truyền lực ra bánh xe.",
+      "shot": "overview",
+      "caption": "Bí mật: 2 puli côn và 1 dây đai",
+      "highlight": ["rearFixed", "rearMovable"],
+      "tags": [{ "text": "Puli sau · dẫn ra bánh xe", "anchor": "rearPulley", "dx": 60, "dy": -40 }]
+    },
+    {
+      "id": "cutaway",
+      "narration": "Bổ đôi puli trước ra, bên trong có sáu viên bi văng nằm trên rãnh dốc.",
+      "shot": "frontCut",
+      "caption": "Bổ đôi puli trước: bên trong có 6 viên bi văng",
+      "cut": ["frontPulley"],
+      "highlight": ["rollers"],
+      "tags": [{ "text": "Bi văng", "anchor": "rollers", "color": "#facc15", "dx": 0, "dy": 70 }]
+    },
+    {
+      "id": "throttle",
+      "narration": "Khi tăng ga, puli quay nhanh hơn, lực ly tâm hất các viên bi văng ra ngoài.",
+      "shot": "frontCut",
+      "caption": "Tăng ga → puli quay nhanh → lực ly tâm hất bi văng ra",
+      "cut": ["frontPulley"],
+      "arrows": ["centrifugal"],
+      "hud": true,
+      "drive": { "rpm": { "to": 6000, "ramp": [0, 0.5] }, "shift": { "to": 0.15, "ramp": [0.5, 1] } }
+    },
+    {
+      "id": "sheave-closes",
+      "narration": "Bi văng lăn lên rãnh dốc, đẩy má puli khép lại. Rãnh hẹp đi, dây bị đẩy lên vòng lớn hơn.",
+      "shot": "frontCut", "orbit": 0.15,
+      "caption": "Bi văng lăn lên rãnh dốc, đẩy má di động khép lại",
+      "sub": "Rãnh hẹp lại → dây bị đẩy lên vòng to hơn",
+      "cut": ["frontPulley"],
+      "arrows": ["centrifugal", "sheavePush"],
+      "highlight": ["frontMovable"],
+      "hud": true,
+      "tags": [{ "text": "Má di động", "anchor": "frontMovable", "dx": 0, "dy": -60 }],
+      "drive": { "rpm": 6200, "shift": 0.6 }
+    },
+    {
+      "id": "rear-opens",
+      "narration": "Ở puli sau thì ngược lại. Dây tụt xuống, ép má puli mở ra và nén lò xo.",
+      "shot": "rear",
+      "caption": "Ở puli sau, dây tụt xuống và ép lò xo lại",
+      "highlight": ["spring", "rearMovable"],
+      "arrows": ["rearSpin"],
+      "hud": true,
+      "tags": [{ "text": "Lò xo bị nén", "anchor": "spring", "color": "#f87171", "dx": -150, "dy": -90 }],
+      "drive": { "rpm": 6400, "shift": 1 }
+    },
+    {
+      "id": "result",
+      "narration": "Kết quả: vòng tua gần như đứng yên, nhưng tỉ số truyền giảm liên tục. Xe nhanh dần mà không có nấc số nào.",
+      "shot": "overview", "orbit": 0.3,
+      "caption": "Vòng tua gần như đứng yên, xe vẫn nhanh dần",
+      "sub": "Tỉ số giảm liên tục 1,97 → 0,81, không có nấc số nào",
+      "arrows": ["frontSpin", "rearSpin"],
+      "hud": true,
+      "drive": { "rpm": { "to": 7500, "ramp": [0.4, 0.9] } }
+    },
+    {
+      "id": "release",
+      "narration": "Khi nhả ga, lò xo đẩy má puli sau khép lại, kéo dây về số thấp.",
+      "shot": "rear",
+      "caption": "Nhả ga: lò xo đẩy má sau khép lại",
+      "sub": "Dây trở về số thấp, sẵn sàng cho lần tăng tốc tiếp theo",
+      "highlight": ["spring"],
+      "arrows": ["springPush"],
+      "hud": true,
+      "drive": { "rpm": { "to": 2000, "ramp": [0, 0.9] }, "shift": { "to": 0, "ramp": [0, 0.55] } }
+    },
+    {
+      "id": "outro",
+      "narration": "Bi văng đẩy lên, lò xo kéo về. Đó là toàn bộ bí mật của hộp số vô cấp.",
+      "shot": "hero", "orbit": 0.3,
+      "caption": "Bi văng đẩy lên, lò xo kéo về",
+      "sub": "Đó là toàn bộ bí mật của hộp số vô cấp",
+      "drive": { "rpm": 1800 }
+    }
+  ]
+}

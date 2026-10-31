@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      #hud-root {
+        position: relative;
+        width: 1080px;
+        height: 1920px;
+        font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+        color: #f4f4f5;
+      }
+      #hud {
+        position: absolute;
+        opacity: 0;
+        top: 1420px;
+        bottom: auto;
+        left: 60px;
+        right: 60px;
+        height: 430px;
+        padding: 28px 20px 0;
+        border-radius: 28px;
+        background: #171c24;
+        border: 2px solid #252b36;
+      }
+      .stats {
+        display: flex;
+        gap: 20px;
+      }
+      .stat {
+        flex: 1;
+        padding: 0 8px;
+      }
+      .stat-label {
+        font-size: 24px;
+        color: #a1a1aa;
+      }
+      .stat-value {
+        margin-top: 2px;
+        font-size: 50px;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+      }
+      .stat-value small {
+        margin-left: 6px;
+        font-size: 22px;
+        font-weight: 500;
+        color: #a1a1aa;
+      }
+      .bar {
+        margin-top: 8px;
+        height: 10px;
+        border-radius: 5px;
+        background: #252b36;
+        overflow: hidden;
+      }
+      .bar i {
+        display: block;
+        height: 100%;
+        width: 0;
+        border-radius: 5px;
+      }
+      #chart {
+        display: block;
+        margin: 26px auto 0;
+        overflow: visible;
+      }
+      .legend {
+        font-size: 20px;
+        font-weight: 600;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="hud-root" data-composition-id="hud" data-width="1080" data-height="1920">
+      <div id="hud">
+        <div class="stats">
+          <div class="stat">
+            <div class="stat-label">Vòng tua máy</div>
+            <div class="stat-value" style="color: #f97316"><span id="v-rpm">0</span><small>v/ph</small></div>
+            <div class="bar"><i id="b-rpm" style="background: #f97316"></i></div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Tỉ số truyền</div>
+            <div class="stat-value" style="color: #facc15"><span id="v-ratio">0</span></div>
+            <div class="bar"><i id="b-ratio" style="background: #facc15"></i></div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Tốc độ xe</div>
+            <div class="stat-value" style="color: #38bdf8"><span id="v-kmh">0</span><small>km/h</small></div>
+            <div class="bar"><i id="b-kmh" style="background: #38bdf8"></i></div>
+          </div>
+        </div>
+        <svg id="chart" width="920" height="200" viewBox="0 -10 920 210">
+          <line x1="0" y1="170" x2="920" y2="170" stroke="#2f3643" stroke-width="2" />
+          <line x1="0" y1="85" x2="920" y2="85" stroke="#232935" stroke-width="2" stroke-dasharray="6 8" />
+          <polyline id="line-rpm" fill="none" stroke="#f97316" stroke-width="5" stroke-linejoin="round" points="" />
+          <polyline id="line-kmh" fill="none" stroke="#38bdf8" stroke-width="5" stroke-linejoin="round" points="" />
+          <circle id="dot-rpm" r="8" fill="#f97316" cx="0" cy="170" />
+          <circle id="dot-kmh" r="8" fill="#38bdf8" cx="0" cy="170" />
+          <text class="legend" x="0" y="196" fill="#f97316">● Vòng tua (0–8.000)</text>
+          <text class="legend" x="330" y="196" fill="#38bdf8">● Tốc độ (0–80 km/h)</text>
+        </svg>
+      </div>
+      <script>
+        // Số liệu, biểu đồ và độ hiện/ẩn của HUD đều do scene.js điều khiển theo kịch bản
+        const tl = gsap.timeline({ paused: true });
+        window.__timelines = window.__timelines || {};
+        window.__timelines["hud"] = tl;
+      </script>
+    </div>
+  </body>
+</html>

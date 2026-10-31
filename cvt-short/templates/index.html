@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="vi" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script type="importmap">
+      { "imports": { "three": "./assets/vendor/three.module.min.js" } }
+    </script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        width: 1080px;
+        height: 1920px;
+        overflow: hidden;
+        background: #0e1116;
+      }
+      #root {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+        color: #f4f4f5;
+      }
+      .clip {
+        position: absolute;
+        inset: 0;
+      }
+      #stage canvas {
+        display: block;
+        width: 1080px;
+        height: 1920px;
+      }
+      .cap {
+        top: 110px;
+        bottom: auto;
+        left: 70px;
+        right: 70px;
+        text-align: center;
+        font-size: 60px;
+        font-weight: 700;
+        line-height: 1.15;
+        letter-spacing: -0.02em;
+      }
+      .cap-sub {
+        top: 250px;
+        bottom: auto;
+        left: 70px;
+        right: 70px;
+        text-align: center;
+        font-size: 32px;
+        color: #a1a1aa;
+      }
+      .cap.two-lines {
+        top: 100px;
+        font-size: 52px;
+      }
+      .tag {
+        position: absolute;
+        transform: translate(-50%, -50%);
+        padding: 10px 20px;
+        border-radius: 14px;
+        background: rgba(14, 17, 22, 0.95);
+        border: 2px solid currentColor;
+        font-size: 28px;
+        font-weight: 600;
+        white-space: nowrap;
+      }
+    </style>
+  </head>
+  <body>
+    <div
+      id="root"
+      data-composition-id="cvt-short"
+      data-start="0"
+      data-duration="__DURATION__"
+      data-width="1080"
+      data-height="1920"
+    >
+      <div id="stage" class="clip" data-start="0" data-duration="__DURATION__" data-track-index="0"></div>
+      <div id="tags" class="clip" data-start="0" data-duration="__DURATION__" data-track-index="1"></div>
+      <h2 id="cap" class="clip cap" data-start="0" data-duration="__DURATION__" data-track-index="2"></h2>
+      <p id="sub" class="clip cap-sub" data-start="0" data-duration="__DURATION__" data-track-index="3"></p>
+      <audio
+        id="vo"
+        src="audio/voiceover.wav"
+        data-start="0"
+        data-duration="__DURATION__"
+        data-track-index="8"
+        data-has-audio="true"
+      ></audio>
+      <!-- __MUSIC__ -->
+      <div
+        id="hud-host"
+        class="clip"
+        data-composition-id="hud"
+        data-composition-src="compositions/hud.html"
+        data-start="0"
+        data-duration="__DURATION__"
+        data-track-index="4"
+      ></div>
+    </div>
+
+    <script type="module">
+      // Toàn bộ nội dung (camera, phụ đề, hiệu ứng, động cơ) đọc từ spec.json qua scene.js.
+      // index.html được sinh từ templates/index.html bởi tools/build-video.mjs — sửa template, đừng sửa file này.
+      import { renderFrame, DURATION } from "./scene.js";
+
+      const tl = gsap.timeline({ paused: true });
+      tl.to({}, { duration: DURATION, onUpdate: renderFrame }, 0);
+      window.__timelines = window.__timelines || {};
+      window.__timelines["cvt-short"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>
