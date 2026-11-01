@@ -6,16 +6,10 @@ import { TAU } from "./lib/mech.js";
 import { createCvtAssembly } from "./lib/cvt-assembly.js";
 import { createDrive } from "./lib/cvt-drive.js";
 import { createDirector } from "./lib/director.js";
+import { createStage, createOverlay, applyEffects, startLoop } from "./lib/stage.js";
 import * as FX from "./lib/fx.js";
 
-// Adapter Three.js của HyperFrames tìm window.THREE để chờ asset load xong
-window.THREE = THREE;
-
 export const DURATION = spec.duration;
-const W = 1080;
-const H = 1920;
-const VIEW = { top: 300, height: 1100 }; // vùng vẽ 3D (toạ độ CSS)
-const BG = 0x0e1116;
 const vn = (x, d = 0) => x.toFixed(d).replace(".", ",");
 
 // ---------- Cơ cấu + động cơ ----------
@@ -36,35 +30,14 @@ const director = createDirector(spec, { shots: SHOTS });
 // ---------- Từ vựng: mặt cắt (toạ độ thế giới; rig đặt puli trước tại gốc) ----------
 // Bổ đôi puli trước theo mặt phẳng chứa trục, bỏ nửa phía camera (x > 0)
 const CUTS = {
-  frontPulley: { normal: [-1, 0, 0], point: [0, 0, 0], sweep: 8 },
+  frontPulley: { plane: { normal: [-1, 0, 0], point: [0, 0, 0], sweep: 8 }, parts: ["frontPulley"] },
 };
 
-// ---------- Scene ----------
-const canvas = document.createElement("canvas");
-canvas.width = W;
-canvas.height = H;
-document.getElementById("stage").appendChild(canvas);
-const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, preserveDrawingBuffer: true });
-renderer.setSize(W, H, false);
-renderer.setPixelRatio(1);
-renderer.setClearColor(BG);
-renderer.autoClear = false;
-FX.enableClipping(renderer);
-
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(BG);
-scene.add(new THREE.HemisphereLight(0xffffff, 0x334155, 1.2));
-const key = new THREE.DirectionalLight(0xffffff, 1.8);
-key.position.set(5, 8, 10);
-scene.add(key);
-const rim = new THREE.DirectionalLight(0x9ec5ff, 0.8);
-rim.position.set(-8, -2, -6);
-scene.add(rim);
-
+// ---------- Sân khấu ----------
+const stage = createStage({ mount: document.getElementById("stage") });
 const rig = cvt.rig;
 rig.rotation.z = -Math.PI / 2; // puli trước ở trên, puli sau ở dưới
-scene.add(rig);
-const camera = new THREE.PerspectiveCamera(32, W / VIEW.height, 0.1, 500);
+stage.scene.add(rig);
 
 // ---------- Từ vựng: mũi tên ----------
 const F = cfg.front;
@@ -125,56 +98,15 @@ const ARROWS = {
 };
 Object.values(ARROWS).forEach((a) => FX.setOpacity(a.obj, 0));
 
-// ---------- Nhãn ----------
-const tagsEl = document.getElementById("tags");
-const tagEls = director.tags.map((tag) => {
-  const el = document.createElement("div");
-  el.className = "tag";
-  el.style.color = tag.color || "#e5e7eb";
-  el.textContent = tag.text;
-  tagsEl.appendChild(el);
-  return el;
+// ---------- Nhãn + phụ đề ----------
+const overlay = createOverlay({
+  stage,
+  director,
+  rig,
+  tagsEl: document.getElementById("tags"),
+  capEl: document.getElementById("cap"),
+  subEl: document.getElementById("sub"),
 });
-const tmp = new THREE.Vector3();
-
-function placeCamera(t) {
-  const [x, y, z, dist, yaw, pitch] = director.cameraAt(t);
-  const target = rig.localToWorld(tmp.set(x, y, z)).clone();
-  camera.position.set(
-    target.x + dist * Math.sin(yaw) * Math.cos(pitch),
-    target.y + dist * Math.sin(pitch),
-    target.z + dist * Math.cos(yaw) * Math.cos(pitch)
-  );
-  camera.lookAt(target);
-  camera.updateMatrixWorld();
-}
-
-function placeTags(t) {
-  const anchors = cvt.anchors();
-  director.tagsAt(t).forEach(({ tag, k }, i) => {
-    const el = tagEls[i];
-    el.style.opacity = k;
-    if (k <= 0) return;
-    rig.localToWorld(tmp.set(...anchors[tag.anchor]));
-    tmp.project(camera);
-    el.style.left = ((tmp.x + 1) / 2) * W + (tag.dx || 0) + "px";
-    el.style.top = VIEW.top + ((1 - tmp.y) / 2) * VIEW.height + (tag.dy || 0) + "px";
-  });
-}
-
-// ---------- Phụ đề ----------
-const capEl = document.getElementById("cap");
-const subEl = document.getElementById("sub");
-function placeCaption(t) {
-  const { main, sub, k } = director.captionAt(t);
-  capEl.textContent = main;
-  subEl.textContent = sub;
-  capEl.classList.toggle("two-lines", main.length > 30);
-  for (const el of [capEl, subEl]) {
-    el.style.opacity = k;
-    el.style.transform = `translateY(${(1 - k) * -24}px)`;
-  }
-}
 
 // ---------- Bảng số liệu (sub-composition hud.html) ----------
 const $ = (id) => document.getElementById(id);
@@ -212,45 +144,16 @@ function updateHud(t) {
 }
 
 // ---------- Vòng render ----------
-const partsOf = (name) => {
-  const list = cvt.parts[name];
-  if (!list) throw new Error(`spec gọi bộ phận không có: "${name}"`);
-  return list;
-};
-
 export function renderFrame() {
   const t = window.__hfThreeTime || 0;
   const st = cvt.update(drive.frame(t));
-
   // Hiệu ứng theo kịch bản (áp lại mỗi frame vì dây đai, lò xo được dựng lại)
-  director.names("highlight").forEach((name) => {
-    const k = director.level("highlight", name, t);
-    partsOf(name).forEach((o) => FX.applyHighlight(o, k, { t }));
-  });
-  director.names("cut").forEach((name) => {
-    const k = director.level("cut", name, t);
-    partsOf(name).forEach((o) => FX.applyCut(o, CUTS[name], k));
-  });
-  Object.entries(ARROWS).forEach(([name, a]) => {
-    if (a.update) a.update(st);
-    FX.setOpacity(a.obj, director.level("arrows", name, t));
-  });
-
+  applyEffects({ director, t, state: st, parts: cvt.parts, cuts: CUTS, arrows: ARROWS });
   rig.updateMatrixWorld(true);
-  placeCamera(t);
-  renderer.setViewport(0, 0, W, H);
-  renderer.clear();
-  renderer.setViewport(0, H - VIEW.top - VIEW.height, W, VIEW.height);
-  renderer.render(scene, camera);
-
-  placeTags(t);
-  placeCaption(t);
+  stage.placeCamera(rig, director.cameraAt(t));
+  stage.render();
+  overlay(t, cvt.anchors());
   updateHud(t);
 }
 
-window.__hfThreeTime = 0;
-window.addEventListener("hf-seek", (e) => {
-  if (e && e.detail && typeof e.detail.time === "number") window.__hfThreeTime = e.detail.time;
-  renderFrame();
-});
-renderFrame();
+startLoop(renderFrame);

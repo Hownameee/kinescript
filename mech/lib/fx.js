@@ -43,7 +43,7 @@ export function applyHighlight(root, k, { color = 0xffc83d, t = 0, strength = 0.
 // k = 0: mặt phẳng lùi ra xa `sweep` (không cắt gì); k = 1: cắt đúng tại `point`.
 // Nắp: vẽ mặt sau của chính mesh bằng màu đặc → nhìn vào mặt cắt thấy khối đặc (kỹ thuật cap giả).
 const planes = new WeakMap();
-export function applyCut(root, cut, k, { capColor = 0xe76f51 } = {}) {
+export function applyCut(root, cut, k, { capColor = 0xe76f51, caps = true } = {}) {
   let plane = planes.get(root);
   if (!plane) {
     plane = new THREE.Plane();
@@ -58,7 +58,7 @@ export function applyCut(root, cut, k, { capColor = 0xe76f51 } = {}) {
     const m = o.material;
     const b = base(m);
     m.clippingPlanes = on ? [plane] : null;
-    if (!o.isMesh) return;
+    if (!o.isMesh || !caps) return; // caps: false — chỉ cắt, không vẽ nắp (vd. khối khí trong suốt)
     m.side = on ? THREE.FrontSide : b.side;
     let cap = o.userData.fxCapMesh;
     if (on && !cap) {
