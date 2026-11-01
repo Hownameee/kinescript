@@ -3,6 +3,9 @@
 // 2. Kịch bản động cơ: vòng tua trong giới hạn, bi văng chỉ văng ra khi vòng tua đủ cao.
 import { DEFAULT_CVT, cvtKinematics } from "../../mech/lib/cvt-assembly.js";
 
+// Kênh chuyển động mà kịch bản điều khiển và giá trị ban đầu
+export const CHANNELS = { rpm: 1800, shift: 0 };
+
 export const LIMITS = {
   rpmMin: 1500,
   rpmMax: 8500, // vạch đỏ động cơ
@@ -27,11 +30,12 @@ export function checkConfig(cfg = DEFAULT_CVT) {
   const solid = (sp.activeTurns + 1.5) * sp.wireRadius * 2; // chiều dài khi các vòng chạm nhau
   const minLen = kin.state(1).springLength;
   if (minLen <= solid * 1.1) errors.push(`lò xo bị nén gần sát vòng (${minLen.toFixed(2)} cm, sát vòng ${solid.toFixed(2)} cm)`);
-  return { errors, kin, solid, minLen };
+  const summary = `dây trong vành puli ✓ · bi văng ✓ · lò xo còn ${minLen.toFixed(2)} cm (sát vòng ${solid.toFixed(2)} cm) ✓`;
+  return { errors, summary };
 }
 
-// rpmAt, shiftAt: hàm theo thời gian; beats: có start / end / id để báo lỗi đúng chỗ
-export function checkDrive(rpmAt, shiftAt, duration, beats, step = 0.05) {
+// fns.rpm, fns.shift: hàm theo thời gian; beats: có start / end / id để báo lỗi đúng chỗ
+export function checkDrive({ rpm: rpmAt, shift: shiftAt }, duration, beats, step = 0.05) {
   const errors = [];
   const seen = new Set();
   const beatAt = (t) => beats.find((b) => t >= b.start && t < b.end) || beats[beats.length - 1];
@@ -54,4 +58,10 @@ export function checkDrive(rpmAt, shiftAt, duration, beats, step = 0.05) {
       );
   }
   return errors;
+}
+
+export function warnings(beats) {
+  return beats
+    .filter((b) => (b.cut || []).length && b.shot !== "frontCut")
+    .map((b) => `beat "${b.id}": cắt lớp nhưng shot "${b.shot}" khó nhìn thấy mặt cắt`);
 }

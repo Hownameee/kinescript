@@ -2,12 +2,13 @@
 // Dùng: node --import ./tools/lib/register-three.mjs tools/build-video.mjs <thư-mục-project> [--check] [--script <file>]
 //   --check:  chỉ kiểm tra schema + cơ khí (không TTS, không ghi file) — dùng sau khi AI viết kịch bản.
 //   --script: kịch bản khác script.json (vd. bản nháp do AI viết), đường dẫn tính từ thư mục project.
+// Chủ đề lấy từ trường "topic" của kịch bản (mặc định "cvt"): dùng mech/schema/<topic>-script.schema.json
+// và tools/lib/checks-<topic>.mjs (CHANNELS, checkConfig, checkDrive, warnings).
 import { readFileSync, writeFileSync, mkdirSync, rmSync } from "node:fs";
 import { join, resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { validate } from "./lib/validate.mjs";
 import { tts, duration, buildVoiceover, synthMusic, duckMusic } from "./lib/audio.mjs";
-import { checkConfig, checkDrive } from "./lib/checks-cvt.mjs";
 import { keyframes } from "../mech/lib/mech.js";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -23,7 +24,9 @@ const scriptFile = flag("--script") || "script.json";
 const readJson = (p) => JSON.parse(readFileSync(p, "utf8"));
 
 const script = readJson(join(projectDir, scriptFile));
-const schema = readJson(join(ROOT, "mech/schema/cvt-script.schema.json"));
+const topic = script.topic || "cvt";
+const schema = readJson(join(ROOT, `mech/schema/${topic}-script.schema.json`));
+const checks = await import(`./lib/checks-${topic}.mjs`);
 
 const voice = { provider: "say", voice: "Linh", rate: 185, ...script.voice };
 const music = { enabled: true, bpm: 96, volume: 0.5, ...script.music };
@@ -48,8 +51,8 @@ fail(
 if (failed) process.exit(1);
 
 // ---------- 2. Cấu hình cơ khí ----------
-const cfgCheck = checkConfig();
-fail("Cấu hình CVT sai hình học", cfgCheck.errors);
+const cfgCheck = checks.checkConfig();
+fail("Cấu hình cơ khí sai", cfgCheck.errors);
 
 // ---------- 3. Độ dài lời đọc ----------
 // Ở chế độ --check ước lượng theo tốc độ đọc (ký tự/giây) để không phải chạy TTS
@@ -72,7 +75,7 @@ const beats = script.beats.map((b, i) => {
 });
 const total = +t.toFixed(3);
 
-// ---------- 5. Kịch bản động cơ: đích theo beat → mốc tuyệt đối ----------
+// ---------- 5. Kênh chuyển động (vd. vòng tua, góc trục khuỷu): đích theo beat → mốc tuyệt đối ----------
 function channel(key, initial) {
   const pts = [[0, initial]];
   let cur = initial;
@@ -90,14 +93,14 @@ function channel(key, initial) {
   if (total > pts[pts.length - 1][0] + 1e-6) pts.push([total, cur]);
   return pts;
 }
-const drive = { rpm: channel("rpm", 1800), shift: channel("shift", 0) };
-fail("Kịch bản động cơ sai cơ khí", checkDrive(keyframes(drive.rpm), keyframes(drive.shift), total, beats));
+const drive = Object.fromEntries(Object.entries(checks.CHANNELS).map(([k, init]) => [k, channel(k, init)]));
+const fns = Object.fromEntries(Object.entries(drive).map(([k, pts]) => [k, keyframes(pts)]));
+fail("Kịch bản chuyển động sai cơ khí", checks.checkDrive(fns, total, beats));
 
 // ---------- 6. Cảnh báo (không chặn) ----------
-const warns = [];
+const warns = checks.warnings ? checks.warnings(beats, fns) : [];
 if (total > timing.maxDuration) warns.push(`tổng ${total.toFixed(1)} s vượt ${timing.maxDuration} s`);
 beats.forEach((b) => {
-  if ((b.cut || []).length && b.shot !== "frontCut") warns.push(`beat "${b.id}": cắt lớp nhưng shot "${b.shot}" khó nhìn thấy mặt cắt`);
   const cps = b.narration.length / b.voLen;
   if (!checkOnly && cps > 20) warns.push(`beat "${b.id}": đọc quá nhanh (${cps.toFixed(1)} ký tự/giây)`);
 });
@@ -111,9 +114,7 @@ beats.forEach((b, i) =>
     `  ${String(i + 1).padStart(2)} ${b.id.padEnd(18)} ${b.start.toFixed(2).padStart(6)}  ${(b.end - b.start).toFixed(2).padStart(5)}  ${b.voLen.toFixed(2)} s${checkOnly ? " (ước lượng)" : ""}`
   )
 );
-console.log(
-  `Cơ khí: dây trong vành puli ✓ · bi văng ✓ · lò xo còn ${cfgCheck.minLen.toFixed(2)} cm (sát vòng ${cfgCheck.solid.toFixed(2)} cm) ✓`
-);
+console.log(`Cơ khí (${topic}): ${cfgCheck.summary}`);
 warns.forEach((w) => console.log("⚠ " + w));
 if (failed) {
   console.error("\nBuild dừng: sửa script.json theo các lỗi trên.");
