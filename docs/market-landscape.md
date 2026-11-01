@@ -69,10 +69,13 @@ Các ví dụ 3D cơ khí bằng Three.js trên mạng (vd. [máy làm kem của
 |---|---|---|
 | `cvt-short` | 59,4 s | "Xe tay ga sang số thế nào?": cắt lớp, highlight, mũi tên lực, HUD, 10 cảnh, lời đọc + nhạc |
 | `vi-sao-may-gao` | 28,8 s | "Vì sao vặn ga, máy gào mà xe lên từ từ?" — kịch bản AI viết từ đề bài |
+| `engine-short` | 59,4 s | "Động cơ 4 kỳ hoạt động thế nào?": bổ đôi động cơ 110 cc, 4 kỳ từng bước, khí đổi màu theo kỳ, tia lửa bugi, biểu đồ đóng mở xupap |
 
 Quy trình **đề bài → AI viết kịch bản → kiểm tra tự động → video có tiếng** mất vài phút (render 60 s video ~30 s), so với 20–100 giờ làm tay.
 
-Còn thiếu trước khi thử nghiệm A/B trên kênh: bản "3D thường" (tắt `hud`), bản có mascot, chủ đề thứ hai ngoài CVT.
+Thêm chủ đề mới (động cơ 4 kỳ) chỉ cần viết bộ phận + cơ cấu + từ vựng; phần dựng, lời đọc, nhạc, kiểm tra dùng lại toàn bộ.
+
+Còn thiếu trước khi thử nghiệm A/B trên kênh: bản "3D thường" (tắt `hud`), bản có mascot.
 
 ## 6. Rủi ro
 

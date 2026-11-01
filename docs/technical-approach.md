@@ -34,20 +34,22 @@ Dựng video bằng code, chia lớp, mô tả nội dung bằng kịch bản d�
 │ 4. Kịch bản   script.json → build (TTS, canh giờ, kiểm tra)    │
 │               → spec.json → director: camera, phụ đề, hiệu ứng │
 │ 3. Hiệu ứng   cắt lớp có nắp, highlight, mũi tên, X-ray        │
-│ 2. Cơ cấu     CVT: bi văng → puli → dây → lò xo, tư thế = f(t) │
-│ 1. Bộ phận    hình học từ tham số (puli, dây đai, bi văng…)    │
+│ 2. Cơ cấu     theo chủ đề: CVT, động cơ 4 kỳ — tư thế = f(t)   │
+│ 1. Bộ phận    hình học từ tham số (puli, piston, xupap, cam…)  │
 └────────────────────────────────────────────────────────────────┘
    Lớp HTML chồng lên: phụ đề, nhãn bám theo vật thể, bảng số liệu
 ```
 
+Lớp 3–5 (fx, director, stage, build, TTS, nhạc) **dùng chung cho mọi chủ đề**. Mỗi chủ đề mới chỉ thêm: bộ phận + cơ cấu (lớp 1–2), schema từ vựng, luật kiểm tra cơ khí, HUD và `scene.js` khai báo từ vựng.
+
 Luồng làm một video:
 
 ```
-đề bài ──(AI + docs/prompts/write-cvt-script.md)──► script.json   lời đọc + cảnh, không có giờ tuyệt đối
+đề bài ──(AI + docs/prompts/write-<chủ đề>-script.md)──► script.json   lời đọc + cảnh, không có giờ tuyệt đối
                                                         │  npm run video:check   schema + cơ khí, không TTS
                                                         │  npm run video:build
                                                         ├─ TTS từng cảnh → đo độ dài → tính giờ, làm tròn theo phách nhạc
-                                                        ├─ kiểm tra cơ khí kịch bản động cơ
+                                                        ├─ kiểm tra cơ khí kịch bản chuyển động
                                                         ├─ ghép voiceover (-16 LUFS) + tự sinh nhạc, hạ nhạc khi có lời
                                                         └─► spec.json + index.html + audio/
                                                                 │  npm run render
@@ -64,35 +66,40 @@ Luồng làm một video:
 6. **Giọng đọc tiếng Việt `say -v Linh`** (macOS, offline) — `hyperframes tts` không có tiếng Việt. Có cache theo nội dung câu.
 7. **Nhạc nền tự sinh bằng code** (hợp âm Am–F–C–G, arpeggio, kick nhẹ): không bản quyền, đúng độ dài, chuyển cảnh trúng phách.
 8. **Kiểm tra trước khi render** (`--check`, vài giây) thay vì phát hiện lỗi sau khi render.
-9. **Mỗi video một project HyperFrames** (lint chỉ cho một composition gốc / project); thư viện dùng chung ở `mech/`, project trỏ tới bằng symlink. Template HTML để trong `templates/` vì mọi file HTML ở gốc project bị coi là composition gốc. Sub-composition (HUD) có thể gắn vào trang sau `scene.js` → kiểm tra phần tử tồn tại trước khi dùng.
-10. **Phiên bản ghim:** HyperFrames 0.8.166, Three.js 0.170.0, Node ≥ 22.
+9. **Chủ đề là plugin**: trường `"topic"` trong kịch bản chọn `mech/schema/<topic>-script.schema.json` và `tools/lib/checks-<topic>.mjs` (khai báo kênh chuyển động `CHANNELS`, `checkConfig`, `checkDrive`, `warnings`). Phần dàn cảnh chung (renderer, camera theo director, nhãn, phụ đề, áp hiệu ứng, vòng `hf-seek`) nằm ở `stage.js`.
+10. **Mỗi video một project HyperFrames** (lint chỉ cho một composition gốc / project); thư viện dùng chung ở `mech/`, project trỏ tới bằng symlink. Template HTML để trong `templates/` vì mọi file HTML ở gốc project bị coi là composition gốc. Sub-composition (HUD) có thể gắn vào trang sau `scene.js` → kiểm tra phần tử tồn tại trước khi dùng.
+11. **Phiên bản ghim:** HyperFrames 0.8.166, Three.js 0.170.0, Node ≥ 22.
 
 ## 5. Mã nguồn
 
 ```
 assemble-3d-video/
-├── docs/                         market-landscape.md, technical-approach.md, prompts/write-cvt-script.md
+├── docs/                         market-landscape.md, technical-approach.md, prompts/ (hướng dẫn AI viết kịch bản từng chủ đề)
 ├── mech/                         thư viện
 │   ├── lib/mech.js               lõi: styledMesh, latheZ, ease, keyframes, integrate
 │   ├── lib/cvt.js                bộ phận CVT + quan hệ dây – puli
 │   ├── lib/cvt-assembly.js       cụm CVT + động học sang số
 │   ├── lib/cvt-drive.js          kịch bản động cơ → vòng tua, tỉ số, km/h, góc quay
+│   ├── lib/engine.js             động cơ 4 kỳ: bộ phận + động học + cụm
 │   ├── lib/fx.js                 cắt lớp, highlight, mũi tên
 │   ├── lib/director.js           spec → camera, phụ đề, cường độ hiệu ứng, nhãn
-│   ├── schema/cvt-script.schema.json
+│   ├── lib/stage.js              renderer, camera, nhãn, phụ đề, áp hiệu ứng, vòng render (dùng chung)
+│   ├── schema/                   cvt-script.schema.json, engine-script.schema.json
 │   └── vendor/                   three.module.min.js + LICENSE
 ├── tools/
 │   ├── build-video.mjs           script.json → kiểm tra → TTS → canh giờ → nhạc → spec.json + index.html
-│   └── lib/                      validate.mjs, audio.mjs, checks-cvt.mjs, register-three.mjs
+│   └── lib/                      validate.mjs, audio.mjs, checks-cvt.mjs, checks-engine.mjs, register-three.mjs
 ├── package.json                  npm run video:check / video:build
-└── cvt-short/                    project video CVT
-    ├── script.json               kịch bản chính
-    ├── scripts/                  kịch bản khác (vd. vi-sao-may-gao.json)
-    ├── scene.js                  "từ vựng" (SHOTS, CUTS, ARROWS) + vòng render
-    ├── templates/index.html      khung HTML (phụ đề, nhãn, HUD, audio)
-    ├── compositions/hud.html     bảng số liệu + biểu đồ
-    ├── spec.json, index.html, audio/   sinh tự động bởi build — không sửa tay
-    └── renders/
+├── cvt-short/                    project video CVT
+│   ├── script.json               kịch bản chính
+│   ├── scripts/                  kịch bản khác (vd. vi-sao-may-gao.json)
+│   ├── scene.js                  "từ vựng" (SHOTS, CUTS, ARROWS) + cập nhật cơ cấu
+│   ├── templates/index.html      khung HTML (phụ đề, nhãn, HUD, audio)
+│   ├── compositions/hud.html     vòng tua / tỉ số / tốc độ + biểu đồ
+│   ├── spec.json, index.html, audio/   sinh tự động bởi build — không sửa tay
+│   └── renders/
+└── engine-short/                 project video động cơ 4 kỳ (cùng cấu trúc)
+    └── compositions/hud.html     kỳ hiện tại, góc trục khuỷu, xupap + biểu đồ đóng mở xupap
 ```
 
 ### 5.1. `mech.js` — lõi
@@ -132,17 +139,39 @@ s → bi văng ra ρ → má trước tiến x1 = (ρ − ρmin)·độ dốc r�
 
 `createCvtAssembly(cfg, { xrayFront })` trả về `update({ s, angleFront, angleRear, beltPhase })`, `anchors()`, `parts`, `kin`. `cvtKinematics(cfg).state(s)` dùng được không cần Three.js.
 
-### 5.4. `fx.js` — hiệu ứng
+### 5.4. `engine.js` — động cơ 4 kỳ (đơn vị cm, cỡ xe số 110cc)
+
+Một xi-lanh làm mát bằng gió, 2 xupap, 2 trục cam (DOHC giản lược). Mọi chuyển động suy ra từ **góc trục khuỷu θ** (độ, cộng dồn; 0 = điểm chết trên đầu kỳ nạp):
+
+```
+piston:  y = r·cosθ + √(l² − r²·sin²θ)                (cơ cấu tay quay – thanh truyền)
+cam:     quay ½ tốc độ trục khuỷu; biên dạng (1+cos)/2 quanh tâm cửa sổ mở
+xupap:   độ nâng = biên dạng cam tại góc hiện tại     (cùng một hàm cho hình cam và chuyển động xupap)
+kỳ:      ⌊(θ mod 720) / 180⌋ → Nạp, Nén, Nổ, Xả
+```
+
+| Thông số | Giá trị |
+|---|---|
+| Đường kính × hành trình, thanh truyền | 50 × 55,6 mm, 90 mm → **109,2 cc** |
+| Tỉ số nén | **9,0** (khe hở buồng đốt suy ra từ tỉ số nén) |
+| Xupap nạp / xả mở | −10°→220° / 500°→730° (có trùng điệp quanh điểm chết trên), nâng tối đa 7,5 mm |
+| Khe hở xupap – piston nhỏ nhất | 6,8 mm (tại θ ≈ 3,5°) |
+
+`createEngineAssembly(cfg)` dựng vỏ máy, xi-lanh + cánh tản nhiệt, nắp máy + cửa nạp / xả, piston, thanh truyền, trục khuỷu (má có đối trọng), xupap + lò xo (nén theo độ nâng), trục cam, bugi (tia lửa quanh 352°) và **khối khí** đổi màu theo kỳ. Trả về `update(θ)`, `anchors()`, `parts`, `kin`. `engineKinematics(cfg).state(θ)` dùng được không cần Three.js.
+
+### 5.5. `fx.js` — hiệu ứng
 
 | Hàm | Mô tả |
 |---|---|
-| `applyCut(root, { normal, point, sweep }, k)` | Mặt phẳng cắt quét vào theo k; nắp mặt cắt tô màu đặc (vẽ mặt sau của mesh) |
+| `applyCut(root, { normal, point, sweep }, k, { caps })` | Mặt phẳng cắt quét vào theo k; nắp mặt cắt tô màu đặc (vẽ mặt sau của mesh); `caps: false` cho vật trong suốt (khối khí) |
 | `applyHighlight(root, k)` | Phát sáng nhấp nháy nhẹ |
 | `straightArrow`, `arcArrow`, `setOpacity` | Mũi tên thẳng / cung (luôn vẽ đè lên vật thể); hiện / ẩn dần |
 
-### 5.5. `director.js` + `cvt-drive.js` — chạy video từ `spec.json`
+### 5.6. `director.js`, `stage.js`, `cvt-drive.js` — chạy video từ `spec.json`
 
-Director biến danh sách beat thành camera (chuyển cảnh + xoay chậm), phụ đề, cường độ hiệu ứng (gộp beat liền nhau để không nháy) và nhãn; báo lỗi nếu gọi tên không tồn tại. `cvt-drive.js` biến mốc vòng tua / sang số thành tỉ số, km/h, góc quay đồng bộ (v = ω·r).
+- **Director** biến danh sách beat thành camera (chuyển cảnh + xoay chậm), phụ đề, cường độ hiệu ứng (gộp beat liền nhau để không nháy) và nhãn.
+- **Stage** (`createStage`, `createOverlay`, `applyEffects`, `startLoop`): renderer + ánh sáng, đặt camera theo director, nhãn + phụ đề, áp highlight / cắt lớp / mũi tên theo từ vựng (`parts`, `cuts`, `arrows`), báo lỗi nếu kịch bản gọi tên không có. Mũi tên có thể trả về hệ số 0–1 để tự ẩn (vd. mũi tên khí nạp chỉ hiện khi xupap nạp mở).
+- **`cvt-drive.js`** biến mốc vòng tua / sang số thành tỉ số, km/h, góc quay đồng bộ (v = ω·r). Động cơ dùng trực tiếp `keyframes(drive.crank)`.
 
 ## 6. Kịch bản (`script.json`)
 
@@ -154,53 +183,48 @@ Mỗi beat (cảnh):
 | `shot`, `orbit`, `transition` | Góc máy; xoay camera (rad) tới cuối cảnh; thời gian chuyển cảnh |
 | `caption`, `sub` | Phụ đề chính (≤ 60 ký tự) / phụ (≤ 80) |
 | `highlight`, `cut`, `arrows`, `tags`, `hud` | Hiệu ứng theo tên trong từ vựng; nhãn bám điểm neo; bật bảng số liệu |
-| `drive.rpm`, `drive.shift` | Đích vòng tua / sang số trong cảnh: số hoặc `{ "to", "ramp": [a, b] }` |
+| `drive.<kênh>` | Đích của kênh chuyển động trong cảnh: số hoặc `{ "to", "ramp": [a, b] }`. CVT: `rpm`, `shift`; động cơ: `crank` (góc trục khuỷu cộng dồn) |
 | `minDuration` | Độ dài tối thiểu (mặc định 2,5 s) |
 
-Cấp video: `voice` (`say` / `kokoro`), `music` (`bpm`, `volume`), `timing` (`lead`, `pad`, `snapToBeat`, `maxDuration`). Độ dài cảnh = max(`minDuration`, `lead` + lời đọc + `pad`), làm tròn lên bội số phách nhạc.
+Cấp video: `topic` (`cvt` / `engine`), `voice` (`say` / `kokoro`), `music` (`bpm`, `volume`), `timing` (`lead`, `pad`, `snapToBeat`, `maxDuration`). Độ dài cảnh = max(`minDuration`, `lead` + lời đọc + `pad`), làm tròn lên bội số phách nhạc.
 
-Từ vựng (`cvt-short/scene.js` + `mech/schema/cvt-script.schema.json`):
-
-| Loại | Tên |
-|---|---|
-| `shot` | `hero`, `overview`, `frontCut`, `rear` |
-| `cut` | `frontPulley` |
-| `arrows` | `frontSpin`, `rearSpin`, `centrifugal`, `sheavePush`, `springPush` |
-| `highlight` | `frontFixed`, `frontMovable`, `frontPulley`, `rollers`, `rampPlate`, `frontShaft`, `rearFixed`, `rearMovable`, `rearPulley`, `spring`, `seat`, `rearShaft`, `belt` |
-| `tags.anchor` | `frontPulley`, `frontMovable`, `rollers`, `belt`, `rearPulley`, `rearMovable`, `spring`, `rearShaftEnd` |
+Từ vựng từng chủ đề (shot, mặt cắt, mũi tên, bộ phận, điểm neo) kèm ý nghĩa: [prompts/write-cvt-script.md](prompts/write-cvt-script.md), [prompts/write-engine-script.md](prompts/write-engine-script.md). Nguồn chính thức là enum trong schema, khớp với `scene.js` của project.
 
 **Kiểm tra tự động** (lỗi thì dừng, kèm vị trí và cách sửa):
 
 | Loại | Nội dung |
 |---|---|
 | Schema | Kiểu, trường bắt buộc, độ dài chữ, tên phải thuộc từ vựng, id không trùng |
-| Cấu hình | Dây nằm trong vành, không chạm moay-ơ; bi văng không chạm moay-ơ / vượt vành; lò xo không bị nén sát vòng |
-| Động cơ | Vòng tua 1.500–8.500; **bi văng chỉ văng ra khi vòng tua ≥ 4.000** |
-| Cảnh báo | Vượt `maxDuration`; cắt lớp mà shot không thấy mặt cắt; đọc quá nhanh |
+| Cấu hình CVT | Dây nằm trong vành, không chạm moay-ơ; bi văng không chạm moay-ơ / vượt vành; lò xo không bị nén sát vòng |
+| Chuyển động CVT | Vòng tua 1.500–8.500; **bi văng chỉ văng ra khi vòng tua ≥ 4.000** |
+| Cấu hình động cơ | Tỉ số nén hợp lý; piston không chạm nắp máy; **xupap không va piston** ở mọi góc; lò xo xupap không bị nén sát vòng |
+| Chuyển động động cơ | Trục khuỷu không quay ngược; không quá 1.080°/s (mắt theo kịp) |
+| Cảnh báo | Vượt `maxDuration`; cắt lớp mà shot không thấy mặt cắt; đọc quá nhanh; **hiệu ứng không khớp chuyển động** (mũi tên khí nạp khi xupap nạp đóng, mũi tên lực nổ ngoài kỳ nổ, mũi tên chuyển động khi trục khuỷu đứng yên) |
 
-**AI viết kịch bản:** đưa `docs/prompts/write-cvt-script.md` + đề bài cho AI → lưu `cvt-short/scripts/<tên>.json` → `video:check` → đưa lỗi lại cho AI sửa → `video:build` → render.
+**AI viết kịch bản:** đưa `docs/prompts/write-<chủ đề>-script.md` + đề bài cho AI → lưu `<project>/scripts/<tên>.json` → `video:check` → đưa lỗi lại cho AI sửa → `video:build` → render.
 
 ## 7. Cách chạy
 
 ```bash
 nvm use 24
-npm run video:check -- cvt-short                        # kiểm tra script.json
-npm run video:build -- cvt-short                        # TTS + nhạc + canh giờ → spec.json, index.html, audio/
+npm run video:check -- <project>                        # kiểm tra script.json (project: cvt-short, engine-short)
+npm run video:build -- <project>                        # TTS + nhạc + canh giờ → spec.json, index.html, audio/
 #   thêm --script scripts/<tên>.json để dùng kịch bản khác
-cd cvt-short && npm run check && npm run render         # lint + render MP4
+cd <project> && npm run check && npm run render         # lint + render MP4
 ```
 
-Kết quả hiện tại: `cvt-short` 59,4 s (render 31 s), `vi-sao-may-gao` 28,8 s (render 17 s); build ~6 s; `hyperframes check` 0 lỗi; lời đọc khớp thời điểm cảnh (lệch < 0,02 s).
+Kết quả hiện tại: `cvt-short` 59,4 s (render 31 s), `vi-sao-may-gao` 28,8 s (render 17 s), `engine-short` 59,4 s (render 32 s); build ~6 s; `hyperframes check` 0 lỗi; lời đọc khớp thời điểm cảnh (lệch < 0,02 s).
 
 ## 8. Giới hạn
 
 - Vòng tua và tiến độ sang số đặt theo kịch bản, chưa giải cân bằng lực (ly tâm ↔ lò xo ↔ tải). Ly hợp, chuông ly hợp chưa dựng; tấm dốc, đế lò xo là đĩa tròn.
+- Động cơ: dẫn động trục cam (xích cam), ống pô, chế hoà khí / phun xăng chưa dựng; 2 trục cam là giản lược (xe số phổ thông dùng 1 trục cam + cò mổ). Khí trong xi-lanh là khối màu, chưa có dòng chảy / ngọn lửa lan.
 - Mặt cắt là mặt phẳng vô hạn: không cắt được dây đai. Nắp mặt cắt không có vân gạch chéo.
 - Nhãn chưa có đường dẫn; vị trí chỉnh tay (`dx`, `dy`).
 - Giọng macOS nghe máy móc; build với `say` chỉ chạy trên macOS. Nhạc nền tự sinh đơn giản.
 - Từ vựng khai báo ở hai nơi (schema và `scene.js`), phải sửa đồng bộ.
 - Mỗi lần build ghi đè `spec.json` / `index.html` / `audio/` của project.
 
-## 9. Tiếp theo
+## 9. Chi phí thêm một chủ đề
 
-- **Chủ đề cơ khí thứ hai** (vd. động cơ 4 kỳ) để kiểm chứng thư viện dùng lại được ngoài CVT.
+Động cơ 4 kỳ là chủ đề thứ hai, dùng để đo chi phí: viết mới `engine.js` (~470 dòng), schema (sinh từ schema CVT), `checks-engine.mjs` (~85 dòng), HUD và `scene.js` (~180 dòng). Dùng lại nguyên: director, fx, stage, build, TTS, nhạc, quy trình kiểm tra. Video đầu tiên của chủ đề qua kiểm tra cơ khí ngay lần đầu; phần chỉnh sửa chủ yếu là góc máy và độ hiện của hiệu ứng.
