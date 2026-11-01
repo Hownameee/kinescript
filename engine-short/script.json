@@ -1,0 +1,117 @@
+{
+  "$schema": "../mech/schema/engine-script.schema.json",
+  "topic": "engine",
+  "title": "Động cơ 4 kỳ hoạt động thế nào?",
+  "voice": { "provider": "say", "voice": "Linh", "rate": 205 },
+  "music": { "enabled": true, "bpm": 96, "volume": 0.9 },
+  "timing": { "lead": 0.2, "pad": 0.4, "snapToBeat": true, "maxDuration": 60 },
+  "beats": [
+    {
+      "id": "hook",
+      "narration": "Mỗi lần vặn ga, trong động cơ có những vụ nổ nhỏ, hàng chục lần mỗi giây.",
+      "shot": "hero", "orbit": 0.3,
+      "caption": "Bên trong động cơ xe máy có gì?",
+      "sub": "Những vụ nổ nhỏ, hàng chục lần mỗi giây",
+      "drive": { "crank": { "to": 1440, "ramp": [0, 0.9] } }
+    },
+    {
+      "id": "parts",
+      "narration": "Động cơ một xi lanh, một trăm mười phân khối: piston, hai xupap và bugi.",
+      "shot": "sideCut",
+      "caption": "Bổ đôi động cơ 110 phân khối",
+      "cut": ["engine"],
+      "tags": [
+        { "text": "Piston", "anchor": "piston", "dx": -90, "dy": 0 },
+        { "text": "Xupap nạp", "anchor": "intakeValve", "color": "#38bdf8", "dx": -150, "dy": -30 },
+        { "text": "Xupap xả", "anchor": "exhaustValve", "color": "#f87171", "dx": 150, "dy": -30 },
+        { "text": "Bugi", "anchor": "sparkPlug", "color": "#f5f5f4", "dx": 0, "dy": -50 }
+      ]
+    },
+    {
+      "id": "intake",
+      "narration": "Kỳ một, nạp. Piston đi xuống, xupap nạp mở, hút xăng và không khí vào.",
+      "shot": "sideCut",
+      "caption": "Kỳ 1 · Nạp: hút xăng + không khí",
+      "cut": ["engine"],
+      "highlight": ["intakeValve"],
+      "arrows": ["intakeFlow", "pistonMove"],
+      "hud": true,
+      "drive": { "crank": { "to": 1620, "ramp": [0.1, 0.95] } }
+    },
+    {
+      "id": "compression",
+      "narration": "Kỳ hai, nén. Xupap đóng, piston đi lên, ép hỗn hợp nhỏ lại chín lần.",
+      "shot": "sideCut",
+      "caption": "Kỳ 2 · Nén: ép hỗn hợp nhỏ lại 9 lần",
+      "cut": ["engine"],
+      "highlight": ["piston"],
+      "arrows": ["pistonMove"],
+      "hud": true,
+      "drive": { "crank": { "to": 1800, "ramp": [0.1, 0.95] } }
+    },
+    {
+      "id": "power",
+      "narration": "Kỳ ba, nổ. Bugi đánh lửa, khí cháy giãn nở đẩy piston xuống. Đây là kỳ duy nhất sinh công.",
+      "shot": "sideCut",
+      "caption": "Kỳ 3 · Nổ: kỳ duy nhất sinh công",
+      "cut": ["engine"],
+      "highlight": ["sparkPlug"],
+      "arrows": ["powerPush"],
+      "hud": true,
+      "drive": { "crank": { "to": 1980, "ramp": [0.15, 0.85] } }
+    },
+    {
+      "id": "exhaust",
+      "narration": "Kỳ bốn, xả. Xupap xả mở, piston đẩy khí cháy ra ngoài.",
+      "shot": "sideCut",
+      "caption": "Kỳ 4 · Xả: đẩy khí cháy ra ngoài",
+      "cut": ["engine"],
+      "highlight": ["exhaustValve"],
+      "arrows": ["exhaustFlow", "pistonMove"],
+      "hud": true,
+      "drive": { "crank": { "to": 2160, "ramp": [0.1, 0.95] } }
+    },
+    {
+      "id": "crank",
+      "narration": "Thanh truyền biến chuyển động lên xuống thành chuyển động quay. Bốn kỳ, trục khuỷu quay hai vòng.",
+      "shot": "crankCut",
+      "caption": "4 kỳ = trục khuỷu quay 2 vòng",
+      "cut": ["engine"],
+      "highlight": ["rod", "crank"],
+      "arrows": ["crankSpin"],
+      "hud": true,
+      "tags": [
+        { "text": "Thanh truyền", "anchor": "rod", "color": "#f59e0b", "dx": 130, "dy": 0 },
+        { "text": "Trục khuỷu", "anchor": "crank", "dx": 0, "dy": 60 }
+      ],
+      "drive": { "crank": { "to": 2880, "ramp": [0.05, 0.95] } }
+    },
+    {
+      "id": "cams",
+      "narration": "Trục cam quay bằng nửa trục khuỷu, nên mỗi xupap chỉ mở một lần trong bốn kỳ.",
+      "shot": "headCut",
+      "caption": "Trục cam quay bằng ½ trục khuỷu",
+      "sub": "Mỗi xupap chỉ mở một lần trong 4 kỳ",
+      "cut": ["engine"],
+      "highlight": ["intakeCam", "exhaustCam"],
+      "hud": true,
+      "drive": { "crank": { "to": 3600, "ramp": [0.05, 0.95] } }
+    },
+    {
+      "id": "real-speed",
+      "narration": "Khi chạy thật, cả chu trình này lặp lại khoảng năm mươi lần mỗi giây.",
+      "shot": "overview", "orbit": 0.4,
+      "caption": "Chạy thật: ~50 chu trình mỗi giây",
+      "sub": "6.000 vòng/phút · ở đây đã quay chậm hàng trăm lần",
+      "drive": { "crank": { "to": 6480, "ramp": [0, 1] } }
+    },
+    {
+      "id": "outro",
+      "narration": "Nạp, nén, nổ, xả. Bốn nhịp làm chiếc xe lăn bánh.",
+      "shot": "hero", "orbit": 0.3,
+      "caption": "Nạp · Nén · Nổ · Xả",
+      "sub": "Bốn nhịp đơn giản làm chiếc xe lăn bánh",
+      "drive": { "crank": { "to": 7200, "ramp": [0, 0.8] } }
+    }
+  ]
+}

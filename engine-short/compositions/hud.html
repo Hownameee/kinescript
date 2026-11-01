@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <style>
+      #hud-root {
+        position: relative;
+        width: 1080px;
+        height: 1920px;
+        font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+        color: #f4f4f5;
+      }
+      #hud {
+        position: absolute;
+        opacity: 0;
+        top: 1420px;
+        left: 60px;
+        right: 60px;
+        height: 430px;
+        padding: 26px 26px 0;
+        border-radius: 28px;
+        background: #171c24;
+        border: 2px solid #252b36;
+      }
+      .strokes {
+        display: flex;
+        gap: 14px;
+      }
+      .stroke {
+        flex: 1;
+        padding: 12px 0;
+        border-radius: 14px;
+        text-align: center;
+        font-size: 30px;
+        font-weight: 700;
+        color: #a1a1aa;
+        background: #252b36;
+      }
+      .stroke.on {
+        color: #0e1116;
+      }
+      .stats {
+        display: flex;
+        gap: 18px;
+        margin-top: 18px;
+      }
+      .stat {
+        flex: 1;
+      }
+      .stat-label {
+        font-size: 22px;
+        color: #a1a1aa;
+      }
+      .stat-value {
+        font-size: 38px;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+      }
+      .bar {
+        margin-top: 6px;
+        height: 10px;
+        border-radius: 5px;
+        background: #252b36;
+        overflow: hidden;
+      }
+      .bar i {
+        display: block;
+        height: 100%;
+        width: 0;
+        border-radius: 5px;
+      }
+      #chart {
+        display: block;
+        margin: 14px auto 0;
+        overflow: visible;
+      }
+      .axis {
+        font-size: 18px;
+        font-weight: 600;
+        fill: #9a9aa3;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="hud-root" data-composition-id="hud" data-width="1080" data-height="1920">
+      <div id="hud">
+        <div class="strokes">
+          <div class="stroke" id="st-0">1 · Nạp</div>
+          <div class="stroke" id="st-1">2 · Nén</div>
+          <div class="stroke" id="st-2">3 · Nổ</div>
+          <div class="stroke" id="st-3">4 · Xả</div>
+        </div>
+        <div class="stats">
+          <div class="stat">
+            <div class="stat-label">Góc trục khuỷu</div>
+            <div class="stat-value" id="v-angle">0°</div>
+            <div class="bar"><i id="b-angle" style="background: #e5e7eb"></i></div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Xupap nạp</div>
+            <div class="stat-value" id="v-in" style="color: #38bdf8">Đóng</div>
+            <div class="bar"><i id="b-in" style="background: #38bdf8"></i></div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Xupap xả</div>
+            <div class="stat-value" id="v-ex" style="color: #f87171">Đóng</div>
+            <div class="bar"><i id="b-ex" style="background: #f87171"></i></div>
+          </div>
+        </div>
+        <!-- Biểu đồ thời điểm đóng mở xupap theo góc trục khuỷu; vạch dọc = vị trí hiện tại -->
+        <svg id="chart" width="900" height="141" viewBox="0 0 960 150">
+          <line x1="240" y1="0" x2="240" y2="112" stroke="#2f3643" stroke-width="2" />
+          <line x1="480" y1="0" x2="480" y2="112" stroke="#2f3643" stroke-width="2" />
+          <line x1="720" y1="0" x2="720" y2="112" stroke="#2f3643" stroke-width="2" />
+          <line x1="0" y1="112" x2="960" y2="112" stroke="#2f3643" stroke-width="2" />
+          <polyline id="line-in" fill="#38bdf833" stroke="#38bdf8" stroke-width="4" points="" />
+          <polyline id="line-ex" fill="#f8717133" stroke="#f87171" stroke-width="4" points="" />
+          <line id="cursor" x1="0" y1="0" x2="0" y2="112" stroke="#facc15" stroke-width="4" />
+          <text class="axis" x="0" y="140">0°</text>
+          <text class="axis" x="225" y="140">180°</text>
+          <text class="axis" x="465" y="140">360°</text>
+          <text class="axis" x="705" y="140">540°</text>
+          <text class="axis" x="960" y="140" text-anchor="end">720°</text>
+        </svg>
+      </div>
+      <script>
+        // Nội dung và độ hiện/ẩn của HUD đều do scene.js điều khiển theo kịch bản
+        const tl = gsap.timeline({ paused: true });
+        window.__timelines = window.__timelines || {};
+        window.__timelines["hud"] = tl;
+      </script>
+    </div>
+  </body>
+</html>
